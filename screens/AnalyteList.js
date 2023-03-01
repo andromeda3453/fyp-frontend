@@ -14,7 +14,7 @@ export default function AnalyteList({ navigation }) {
     const [analytes, setAnalytes] = useState([{ id: 1, name: 'Haemoglobin' }, { id: 2, name: 'M.C.V' }, { id: 3, name: 'Platelets' }, { id: 4, name: 'R.B.C' }])
     const { openModal, closeModal } = useModal()
 
-    const buttons = analytes.map((analyte) => <FlatButton text={analyte.name} id={analyte.id} action={(id) => console.log()} />)
+    const buttons = analytes.map((analyte) => <FlatButton text={analyte.name} key={analyte.id} action={() => navigation.navigate("Graphs", { id: analyte.id })} />)
 
     useEffect(() => {
 

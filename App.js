@@ -9,6 +9,8 @@ import UploadPDF from "./screens/UploadPDF";
 import EditResults from "./screens/EditResults";
 import Graphs from './screens/Graphs';
 import AnalyteList from './screens/AnalyteList';
+import Login from "./screens/Login";
+
 import { Button } from 'native-base';
 import CompareAnalyteModal from "./components/CompareAnalyteModal";
 
@@ -30,12 +32,13 @@ export default function App() {
                 headerStyle: { backgroundColor: '#22A39F' },
                 headerTitleStyle: { color: "#F3EFE0" }
               }}
-              initialRouteName="Home"
+              initialRouteName="Login"
             >
               <MainStack.Screen name="Home" component={Home} />
               <MainStack.Screen name="Upload PDF" component={UploadPDF} />
               <MainStack.Screen name="Edit Results" component={EditResults} />
               <MainStack.Screen name="Graphs" component={Graphs} />
+              <MainStack.Screen name="Login" component={Login} />
               <MainStack.Screen name="AnalyteList"
                 component={AnalyteList}
                 options={{

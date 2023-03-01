@@ -7,7 +7,7 @@ import {
 import { useState } from "react";
 
 
-export default function FlatButton({ text, action }) {
+export default function FlatButton({ text, action, buttonId }) {
 
     return <Box alignItems="center">
         <Pressable onPress={action} >
