@@ -11,7 +11,7 @@ export default function TextBox({ label, onChange, props, textValue }) {
             outlineColor="teal"
             activeOutlineColor="teal"
             {...props}
-            value={textValue ? textValue : undefined}
+            value={textValue}
         // onChangeText={text => setText(text)}
         />
     )

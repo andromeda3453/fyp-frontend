@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
 
     VStack,
@@ -6,15 +6,37 @@ import {
     Pressable,
     Menu,
     HamburgerIcon,
-    Center
+    Center,
+    Icon,
+    Button
 
 } from "native-base";
 import FlatButton from "../components/FlatButton"
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { SafeAreaView } from "react-native";
+import { AntDesign, Ionicons, Octicons } from "@expo/vector-icons";
+import { AuthContext } from "../components/AuthContext";
 
 export default function Home({ navigation }) {
+
+    const authContext = useContext(AuthContext)
+
+    useEffect(() => {
+
+        navigation.setOptions({
+            headerRight: () => (
+
+                <Button variant="unstyled"
+                    rightIcon={<Ionicons name="exit-outline" size={24} color="white" />}
+                    _text={{ color: "white" }}
+                    onPress={() => authContext.authFunctions.signOut()}
+                >SIGN OUT</Button>
+
+            )
+        })
+
+    }, [])
 
     const selectDoc = async () => {
 
@@ -69,9 +91,10 @@ export default function Home({ navigation }) {
             px={4}
         >
             <VStack space={5} alignItems="center">
-                <FlatButton text="Upload Pdf" action={() => { navigation.navigate("Upload PDF") }} />
+
+                <FlatButton icon={<Icon style={{ textShadowColor: "#C7FFD8", textShadowRadius: 3 }} color="#C7FFD8" as={AntDesign} name="pdffile1" size={35} />} text="Upload a PDF" action={() => { navigation.navigate("Upload PDF") }} />
                 {/* <FlatButton text="Upload Pdf" action={() => openModal('CompareAnalyteModal')} /> */}
-                <FlatButton text="Show health graphs" action={() => { navigation.navigate("AnalyteList") }} />
+                <FlatButton icon={<Icon style={{ textShadowColor: "#C7FFD8", textShadowRadius: 3 }} color="#C7FFD8" as={Octicons} name="graph" size={35} />} text="View Graphs" action={() => { navigation.navigate("AnalyteList") }} />
             </VStack>
         </Center>
     );

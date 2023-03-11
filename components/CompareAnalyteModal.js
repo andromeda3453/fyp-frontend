@@ -3,6 +3,7 @@ import { Button, Center, CloseIcon, Divider, HStack, Icon, Text, VStack, useThem
 import { useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Pressable } from "react-native";
 
 export default function CompareAnalyteModal({ modal: { closeModal, params } }) {
 
@@ -14,18 +15,25 @@ export default function CompareAnalyteModal({ modal: { closeModal, params } }) {
     const [endOpen, setEndOpen] = useState(false);
 
 
+    // const validate = () => {
+
+
+
+    // }
+
+
     return (
-        <Center px={2} py={4} borderRadius={12} backgroundColor="teal.50">
+        <Center px={2} py={4} borderRadius={12} backgroundColor="#161D6F">
             <HStack space={2} m={3}>
-                <Text fontWeight={"bold"} fontSize={"md"}>Please select atleast 2 analytes to compare</Text>
-                <CloseIcon size="5" color="teal.600" onPress={closeModal} />
+                <Text fontWeight={"bold"} fontSize={20} color="#C7FFD8">Please select atleast 2 analytes to compare</Text>
+                <CloseIcon size="5" color="#C7FFD8" onPress={closeModal} />
             </HStack>
-            <Divider />
+            <Divider style={{ backgroundColor: "#C7FFD8" }} />
             <VStack m={3} minWidth="80%" maxWidth="80%" space={2}>
 
                 {/* Dropdown to select analytes */}
                 <Select
-                    options={params.analytes ? params.analytes.map(a => { return { label: a.name, value: a.id } }) : []}
+                    options={params.analytes ? params.analytes.map(a => { return { label: toTitleCase(a.name), value: a.id } }) : []}
                     multiple={true}
                     defaultOption={{ label: 'Haemoglobin', value: 1 }}
                     onSelect={option => setAnalytes([...analytes, option.value])}
@@ -80,39 +88,39 @@ export default function CompareAnalyteModal({ modal: { closeModal, params } }) {
                 />
 
                 {/* Date Modal Buttons */}
-                <HStack space={2}>
-                    <Button
-                        onPress={() => setStartOpen(true)}
-                        colorScheme="teal"
-                        leftIcon={<Icon as={MaterialCommunityIcons} name="calendar" size="md" />}
-                    >
-                        From
-                    </Button>
-                    {/* <Text>{range.startDate ? range.startDate.toDateString() : undefined}</Text> */}
-                    <Input width={"70%"}
-                        value={range.startDate ? range.startDate.toDateString() : undefined}
-                        isReadOnly style={{ textAlign: "center" }}
-                    />
-                </HStack>
-                <HStack space={2}>
-                    <Button
-                        onPress={() => setEndOpen(true)}
-                        colorScheme="teal"
-                        leftIcon={<Icon as={MaterialCommunityIcons} name="calendar" size="md" />}
-                    >
-                        To
-                    </Button>
-                    {/* <Text bg="red">{range.endDate ? range.endDate.toDateString() : undefined}</Text> */}
-                    <Input width={"70%"}
-                        value={range.endDate ? range.endDate.toDateString() : undefined}
-                        isReadOnly style={{ textAlign: "center" }}
-                    />
-                </HStack>
+                <Pressable onPress={() => setStartOpen(true)}>
+                    <HStack space={4}>
+                        <HStack space={2} justifyContent="center" alignItems="center">
+                            <Icon style={{ textShadowColor: "#C7FFD8", textShadowRadius: 3 }} color="#C7FFD8" as={MaterialCommunityIcons} name="calendar" size="md" />
+                            <Text color={"#C7FFD8"}>From</Text>
+                        </HStack>
+                        <Input width={"70%"}
+                            value={range.startDate ? range.startDate.toDateString() : undefined}
+                            isReadOnly style={{ textAlign: "center" }}
+                            color="#C7FFD8"
+                        />
+                    </HStack>
+                </Pressable>
+                <Pressable onPress={() => setEndOpen(true)}>
+                    <HStack space={8}>
+                        <HStack space={2} justifyContent="center" alignItems="center">
+                            <Icon style={{ textShadowColor: "#C7FFD8", textShadowRadius: 3 }} color="#C7FFD8" as={MaterialCommunityIcons} name="calendar" size="md" />
+                            <Text color={"#C7FFD8"}>To</Text>
+                        </HStack>
+                        <Input width={"70%"}
+                            value={range.endDate ? range.endDate.toDateString() : undefined}
+                            isReadOnly style={{ textAlign: "center" }}
+                            color="#C7FFD8"
+                        />
+                    </HStack>
+                </Pressable>
 
                 {/* Submit Button */}
                 <Button
-                    onPress={() => console.log(analytes)}
-                    rightIcon={<Icon as={MaterialCommunityIcons} name="compare-horizontal" size="md" />} colorScheme="teal"
+                    onPress={() => validate()}
+                    rightIcon={<Icon style={{ textShadowColor: "#C7FFD8", textShadowRadius: 3 }} color="#C7FFD8" as={MaterialCommunityIcons} name="compare-horizontal" size="md" />}
+                    variant="outline"
+                    _text={{ color: "#C7FFD8" }}
                 >
                     Compare
                 </Button>
@@ -120,4 +128,10 @@ export default function CompareAnalyteModal({ modal: { closeModal, params } }) {
         </Center>
     )
 
+}
+
+function toTitleCase(str) {
+    return str.toLowerCase().split(' ').map(function (word) {
+        return (word.charAt(0).toUpperCase() + word.slice(1));
+    }).join(' ');
 }

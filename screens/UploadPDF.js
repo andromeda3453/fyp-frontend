@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import * as config from '../config.json'
 import {
 
@@ -15,11 +15,13 @@ import {
     Toast
 } from "native-base";
 
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 import ComboBox from "../components/ComboBox";
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { Select } from "@mobile-reality/react-native-select-pro";
+import { Snackbar } from "react-native-paper";
+import { AuthContext } from "../components/AuthContext";
 
 function displayMessage(message) {
 
@@ -43,77 +45,53 @@ export default function UploadPDF({ navigation }) {
     const [testType, setTestType] = useState()
     const [testTypes, setTestTypes] = useState([])
     const [file, setFile] = useState()
-    const [error, setError] = useState()
+    const [error, setError] = useState(null)
+    const [visible, setVisible] = useState(false);
+    const authContext = useContext(AuthContext)
 
 
-    const fetchLabs = async () => {
+    const fetchData = async () => {
 
-        var response = null
+        var labResponse = null
+        var testTypeResponse = null
 
         try {
 
-            response = await fetch('http://192.168.10.2:5000/api/lab/search', {
+            labResponse = await fetch(`${config.SERVER_HOST}:${config.SERVER_PORT}/api/lab/search`, {
                 method: 'post',
                 headers: {
-                    'Authorization': `Bearer ${config.AUTH_TOKEN}`
+                    'Authorization': `Bearer ${authContext.token}`
                     , "Content-Type": "application/json"
                 },
                 body: JSON.stringify({})
             })
 
-            response = await response.json()
-
-            if (response.data != null) {
-
-                setLabs(response.data)
-                setLoading(false)
-            }
-            else {
-                displayMessage("Lab data not available")
-            }
-
-
-        } catch (error) {
-
-            console.log(error)
-            displayMessage("An error occured, Please try again later")
-            setLoading(false)
-
-        }
-
-    }
-
-    const fetchTestTypes = async () => {
-
-        var response = null
-
-        try {
-
-            response = await fetch('http://192.168.10.2:5000/api/testtype', {
+            testTypeResponse = await fetch(`${config.SERVER_HOST}:${config.SERVER_PORT}/api/testtype`, {
                 method: 'get',
                 headers: {
-                    'Authorization': `Bearer ${config.AUTH_TOKEN}`
-                    //, "Content-Type": "application/json"
+                    'Authorization': `Bearer ${authContext.token}`
                 },
-                //body: JSON.stringify({})
             })
 
-            response = await response.json()
+            labResponse = await labResponse.json()
+            testTypeResponse = await testTypeResponse.json()
 
-            if (response != null) {
+            if (labResponse.data != null && testTypeResponse != null) {
 
-                setTestTypes(response)
+                setLabs(labResponse.data)
+                setTestTypes(testTypeResponse)
                 setLoading(false)
             }
             else {
-                displayMessage("Test Type data not available")
+                setError("Data not available")
+                setLoading(false)
             }
 
 
         } catch (error) {
 
             console.log(error)
-            displayMessage("An error occured, Please try again later")
+            setError("An error occured, Please try again later")
             setLoading(false)
 
         }
@@ -123,62 +101,32 @@ export default function UploadPDF({ navigation }) {
 
     useEffect(() => {
 
-        fetchLabs()
-        fetchTestTypes()
+        fetchData()
 
     }, [])
 
 
-    // const labs = [
-    //     {
-    //         id: 0,
-    //         name: 'Saifee Hospital',
-    //     },
-    //     {
-    //         id: 1,
-    //         name: 'Aga Khan',
-    //     },
-    //     {
-    //         id: 2,
-    //         name: 'Dow Lab',
-    //     }
-    // ]
-
-    // const testTypes = [
-    //     {
-    //         id: 0,
-    //         name: 'Blood Test',
-    //     },
-    //     {
-    //         id: 1,
-    //         name: 'ANTI HCV',
-    //     },
-    //     {
-    //         id: 2,
-    //         name: 'HBS AG',
-    //     }
-    // ]
 
     const selectFiles = async () => {
 
         try {
             const doc = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
 
-            if (doc.type == "cancel") {
-
-                console.log("File upload cancelled")
-
-            } else {
+            if (doc.type != "cancel") {
 
                 setFile(doc)
                 // var fileUri = doc.uri
-                // const response = await FileSystem.uploadAsync(`http://10.0.2.2:8000/test`, fileUri, {
-                //   fieldName: 'file',
-                //   httpMethod: 'POST',
-                //   uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-                //   headers: { "Content-Type": "multipart/form-data" }
+                // const response = await FileSystem.uploadAsync(`${config.SERVER_HOST}:8000/uploadfile`, fileUri, {
+                //     fieldName: 'file',
+                //     httpMethod: 'POST',
+                //     uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                //     headers: { "Content-Type": "multipart/form-data" }
                 // });
-                // console.log(JSON.stringify(response, null, 4));
+                // console.log(JSON.stringify(response));
+
+            } else {
+
+                console.log("file upload cancelled")
             }
 
 
@@ -186,6 +134,67 @@ export default function UploadPDF({ navigation }) {
 
             console.log(error)
         }
+
+    }
+
+    const validateAndSubmit = async () => {
+
+
+        if (lab && file && testType) {
+
+            var response = null
+            try {
+
+                var fileUri = file.uri
+                const textresponse = await FileSystem.uploadAsync(`${config.SERVER_HOST}:8000/uploadfile`, fileUri, {
+                    fieldName: 'file',
+                    httpMethod: 'POST',
+                    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
+
+
+                if (textresponse.body) {
+
+                    console.log(JSON.parse(textresponse.body));
+                    response = await fetch(`${config.SERVER_HOST}:${config.SERVER_PORT}/api/parser`, {
+                        method: 'post',
+                        headers: {
+                            'Authorization': `Bearer ${authContext.token}`
+                            , "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "reportText": JSON.parse(textresponse.body),
+                            "labName": lab,
+                            "testType": testType
+                        })
+                    })
+
+                    response = await response.json()
+
+                    if (response) {
+                        navigation.navigate("Edit Results", { ...response.patientDetails })
+                        // console.log(response.patientDetails)
+                    }
+                    else {
+                        return { error: "Data not found" }
+                    }
+
+                }
+
+
+            } catch (error) {
+
+                console.log(error)
+                return { error: "Data not found" }
+
+            }
+
+
+        } else {
+            setError("Please fill all the required fields")
+        }
+
 
     }
 
@@ -196,43 +205,52 @@ export default function UploadPDF({ navigation }) {
                 labs.length > 0 && testTypes.length > 0 ?
                     <>
                         <VStack px={0}>
-                            <FormControl.Label>Select Lab</FormControl.Label>
-                            {/* <ComboBox selectProps={{ minWidth: "200" }} getValue={setLab} values={labs} /> */}
-                            <Select
-                                options={labs.map(lab => { return { value: lab.id, label: lab.name } })}
-                                clearable={false}
-                                closeOptionsListOnSelect={true}
-                                theme="light"
-                                styles={{ select: { container: { borderColor: "teal.600", height: 50, minWidth: 170 }, text: { fontWeight: "600" } } }}
-                                onSelect={(option) => { setLab(option.value) }}
-                            />
-                            <FormControl.Label mt={7}>Select Test Type</FormControl.Label>
-                            <Select
-                                options={testTypes.map(testType => { return { value: testType.id, label: testType.name } })}
-                                clearable={false}
-                                closeOptionsListOnSelect={true}
-                                theme="light"
-                                styles={{ select: { container: { borderColor: "teal.600", height: 50, minWidth: 170 }, text: { fontWeight: "600" } } }}
-                                onSelect={(option) => { setTestType(option.value) }}
-                            />
-                            {/* <ComboBox selectProps={{ minWidth: "200" }} getValue={setTestType} values={testTypes} /> */}
-                        </VStack>
+                            <FormControl isRequired>
+                                <FormControl.Label>Select Lab</FormControl.Label>
+                                <Select
+                                    options={labs.map(lab => { return { value: lab.id, label: lab.name } })}
+                                    clearable={false}
+                                    closeOptionsListOnSelect={true}
+                                    theme="light"
+                                    styles={{ select: { container: { borderColor: "teal.600", height: 50, minWidth: 170 }, text: { fontWeight: "600" } } }}
+                                    onSelect={(option) => { setLab(option.label) }}
+                                />
+                            </FormControl>
 
-                        <Button onPress={() => navigation.navigate("Edit Results")}
-                            mt={10} leftIcon={<Icon as={Ionicons} name="cloud-upload-outline" size="lg" />}>
-                            Upload file
+                            <FormControl isRequired>
+                                <FormControl.Label mt={7}>Select Test Type</FormControl.Label>
+                                <Select
+                                    options={testTypes.map(testType => { return { value: testType.id, label: testType.name } })}
+                                    clearable={false}
+                                    closeOptionsListOnSelect={true}
+                                    theme="light"
+                                    styles={{ select: { container: { borderColor: "teal.600", height: 50, minWidth: 170 }, text: { fontWeight: "600" } } }}
+                                    onSelect={(option) => { setTestType(option.label) }}
+                                />
+                            </FormControl>
+                        </VStack>
+                        <Button onPress={() => selectFiles()}
+                            mt={10} leftIcon={<Icon as={AntDesign} name="addfile" size="md" />}>
+                            Select file
                         </Button>
                         {
                             file ? (
-                                <HStack space="sm" justifyItems="center"
-                                    alignItems="center" padding={3} mt={3}
-                                    style={{ borderColor: "#22A39F", borderWidth: 3, borderRadius: 7 }}  >
-                                    <Text fontSize="xl">{file.name}</Text><CloseIcon size={4} onPress={() => { setFile(undefined) }} />
+                                <HStack space="xs" justifyContent="center"
+                                    alignItems="center" padding={1} mt={3}
+                                >
+                                    <Button variant="unstyled" _text={{ fontSize: 20, fontWeight: "600" }} rightIcon={<Entypo onPress={() => setFile(undefined)} name="cross" size={26} color="red" />}>{file.name.length <= 16 ? file.name : file.name.slice(0, 16) + "..."}</Button>
+
                                 </HStack>
                             )
                                 : undefined
                         }
+                        <Button onPress={() => validateAndSubmit()}
+                            mt={5} leftIcon={<Icon as={Ionicons} name="cloud-upload-outline" size="lg" />}>
+                            Upload
+                        </Button>
                     </> : undefined
+
+
             }
 
             {loading && (
@@ -250,7 +268,13 @@ export default function UploadPDF({ navigation }) {
 
             })
             } */}
-
+            <Snackbar
+                visible={error == null ? false : true}
+                onDismiss={() => { setError(null) }}
+                duration={2000}
+            >
+                {error}
+            </Snackbar>
 
         </Center >
 

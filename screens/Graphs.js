@@ -2,7 +2,6 @@ import { Button, Center, ScrollView, Text } from "native-base";
 // import { Chart, Line, Area, HorizontalAxis, VerticalAxis } from 'react-native-responsive-linechart'
 import { LineChart } from "react-native-gifted-charts";
 
-
 export default function Graphs({ route }) {
 
     const data = [
@@ -19,7 +18,7 @@ export default function Graphs({ route }) {
     ]
     return (
         <Center flex={1} px={7} flexDirection="column" justifyContent="center">
-            <LineChart data={data} isAnimated={true} spacing={45} rotateLabel={true} xAxisLabelTextStyle={{ fontSize: 10 }} />
+            <LineChart data={data} isAnimated spacing={45} rotateLabel={true} xAxisLabelTextStyle={{ fontSize: 10 }} />
             {/* <Chart
                 style={{ height: 200, width: 400 }}
                 data={[
